@@ -1,0 +1,100 @@
+#!/bin/dash
+error_different(){
+    if ! cmp -s ".legit/master/$2/$1" "./$1"; then
+        if ! cmp -s ".legit/index/$1" ".legit/master/$2/$1";then
+            if ! cmp -s ".legit/index/$1" "./$1";then
+                printf "legit-rm: error: '$1' in index is different to both working file and repository\n"
+            else
+                printf "legit-rm: error: '$1' has changes staged in the index\n"
+            fi
+        else
+            printf "legit-rm: error: '$1' in repository is different to working file\n"
+        fi
+        return 1
+    else
+        return 0
+    fi
+}
+
+error_different_cached(){
+if ! cmp -s ".legit/index/$1" ".legit/master/$1";then
+    if ! cmp -s ".legit/index/$1" "./$1";then
+        printf "legit-rm: error: '$1' in index is different to both working file and repository\n"
+        return 1
+    else
+        return 0
+    fi
+else
+    return 0
+fi
+}
+
+
+branch="master"
+num=0
+while [ -e ./.legit/$branch/$num ]
+do
+    num=$(($num+1))
+done
+num=$(($num-1))
+
+if [ $1 = "--cached" ];then
+    for file in $@;do
+        if [ $file = "--cached" ];then
+        continue
+        fi
+
+        if [ -e ./.legit/index/$file ]; then
+            if error_different_cached $file; then
+                rm ./.legit/index/$file
+                continue
+            fi
+        else
+            printf "legit-rm: error: '$file' is not in the legit repository\n"
+        fi
+    done
+
+elif [ $1 = "--force" ];then
+    if [ $2 = "--cached" ];then
+        for file in $@;do
+            if [ $file = "--force" ];then
+            continue
+            fi
+            if [ $file = "--cached" ];then
+            continue
+            fi
+            if [ -e ./.legit/index/$file ]; then
+                rm .legit/index/$file
+            else
+                printf "legit-rm: error: '$file' is not in the legit repository\n"
+            fi
+        done
+    else
+        for file in $@;do
+            if [ $file = "--force" ];then
+            continue
+            fi
+
+            if [ -e ./.legit/index/$file ]; then
+                rm .legit/index/$file
+                rm ./$file
+            else
+                printf "legit-rm: error: '$file' is not in the legit repository\n"
+            fi
+        done
+    fi
+else
+    for file in $@;do
+        if [ -e ./.legit/index/$file ]; then
+            if error_different $file $num; then
+                rm ./.legit/index/$file
+                rm ./$file
+            else
+                exit 1;
+            fi
+        else
+            printf "legit-rm: error: '$file' is not in the legit repository\n"
+            exit 1;
+        fi
+    done
+fi

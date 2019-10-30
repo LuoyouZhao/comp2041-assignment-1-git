@@ -1,0 +1,37 @@
+#!/bin/dash
+#branch=<.legit/curr_branch
+branch="master"
+
+num=`echo $1 | cut -d":" -f1`
+name=`echo $1 | cut -d":" -f2`
+
+if ! [ -e .legit/$branch/$num ]
+then
+    printf "legit-show: error: unknown commit '$num'\n"
+    exit 1
+fi
+
+if [ -z $num ]
+then
+    if ! [ -e .legit/index/$name ]
+    then
+        printf "legit-show: error: '$name' not found in index\n"
+        exit 1
+    else
+        while read file
+        do
+            printf "$file\n"
+        done <.legit/index/$name
+        exit 0
+    fi
+fi
+
+if [ -e .legit/$branch/$num/$name ]
+then
+    while read file
+    do
+        printf "$file\n"
+    done <.legit/$branch/$num/$name
+else
+    printf "legit-show: error: '$name' not found in commit $num\n"
+fi

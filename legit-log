@@ -1,0 +1,21 @@
+#!/bin/dash
+num=0;
+while [ -e ./.legit/log/$num ]
+do
+    num=$(($num+1))
+done
+num=$(($num-1))
+
+if [ $num -le 0 ] 
+then
+    exit 0;
+fi
+
+while [ $num -ge  0 ]
+do
+    while read word
+    do
+        printf "$word\n"
+    done <.legit/log/$num
+    num=$(($num-1))
+done

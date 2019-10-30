@@ -1,0 +1,53 @@
+#!/bin/dash
+num=0
+while [ -e .legit/master/$num ]
+do
+    num=$(($num+1))
+done
+num=$(($num-1))
+different(){
+    if cmp -s ".legit/index/$1" "./$1"; then
+        if cmp -s ".legit/index/$1" ".legit/master/$2/$1"; then
+            printf "$1 - same as repo\n"
+            return 0
+        else
+            printf "$1 - file changed, changes staged for commit\n"
+            return 0
+        fi
+    else
+        if cmp -s ".legit/index/$1" ".legit/master/$2/$1"; then
+            printf "$1 - file changed, changes not staged for commit\n"
+            return 0
+        else
+            printf "$1 - file changed, different changes staged for commit\n"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+for file in `find . -type f | awk -F '/' '{print $NF}'| sort | uniq |sort`;do
+    if [ -e .legit/master/$num/$file ]; then
+        if [ -e .legit/index/$file ];then
+            if [ -e ./$file ];then
+                different $file $num
+            else
+                printf "$file - file deleted\n"
+            fi
+        else
+            if [ -e ./$file ];then
+                printf "$file - untracked\n"
+            else
+                printf "$file - deleted\n"
+            fi
+        fi
+    else
+        if [ -e .legit/index/$file ];then
+            printf "$file - added to index\n"
+        else
+            if [ -e ./$file ];then
+                printf "$file - untracked\n"
+            fi
+        fi
+    fi  
+done

@@ -1,0 +1,73 @@
+#!/bin/dash
+comment=$2
+#-----------------------------------commit -a -m--------------------------------------
+if [ -e "./.legit" ];then
+    if [ $1 = "-a" ]; then
+        comment=$3
+        cp -r .//* .legit/index
+    fi
+else
+    printf "legit-add: error: no .legit directory containing legit repository exists\n"
+    exit 0
+fi
+#--------------------------------------------------------------------------------------
+
+#branch=<.legit/curr_branch
+branch="master"
+
+num=0
+while [ -e ./.legit/$branch/$num ]
+do
+    num=$(($num+1))
+done
+
+#--------------------------------nothing to commit-----------------------------------
+
+code=1;
+if [ $num -gt 0 ];then
+    check=$(($num-1))
+    while [ $check -ge $(($num-1)) ];do
+        for name in .legit/$branch/$check/*
+        do
+            f=`echo "$name" | cut -d'/' -f4`
+            if [ -e .legit/index/$file ];then
+                if ! cmp -s ".legit/index/$f" ".legit/$branch/$check/$f" ;then
+                    code=0
+                    break
+                else
+                    continue
+                fi
+            else
+                code=0
+                break
+            fi
+        done
+        if [ $code -eq 1 ]; then
+            printf "nothing to commit\n"
+            exit 1
+        fi
+        code=1
+        check=$(($check-1))
+    done
+fi
+#--------------------------------------------------------------------------------------
+
+    touch ".legit/log/$num"
+    printf "$num $comment\n" > ".legit/log/$num"
+
+    if [ "`ls -A .legit/index`" = "" ];then
+        if [ "`ls -A .legit/$branch/$(($num-1))`" = "" ];then
+            printf "nothing to commit\n"
+        else
+            mkdir ".legit/$branch/$num"
+            printf "Committed as commit $num\n"
+        fi    
+    else
+        mkdir ".legit/$branch/$num"
+        for file in .legit/index/*
+        do
+            cp $file ".legit/$branch"
+            cp $file ".legit/$branch/$num"
+        done
+    printf "Committed as commit $num\n"
+    fi

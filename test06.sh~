@@ -1,0 +1,8 @@
+#!/bin/dash
+./legit-init
+touch a b c
+./legit-add a b c
+./legit-commit -m 'first commit'
+echo the first line >a
+./legit-rm b
+./legit-status

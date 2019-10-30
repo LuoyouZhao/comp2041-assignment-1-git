@@ -1,0 +1,14 @@
+#!/bin/dash
+if [ -e .legit ]
+then
+    printf "legit-init: error: .legit already exists\n"
+    exit 0
+else
+    mkdir ".legit"
+    mkdir ".legit/master"
+    mkdir ".legit/index"
+    mkdir ".legit/log"
+    #touch "curr_branch"
+    #printf "master" > curr_branch
+    printf "Initialized empty legit repository in .legit\n"
+fi
